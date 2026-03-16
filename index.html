@@ -259,45 +259,56 @@ function updateFsBtn(){
 }
 
 // ── Fetch ──
-async function proxyFetch(url,timeout=12000){
+function timedFetch(url, opts={}, timeout=12000){
   const ctrl=new AbortController();
   const tid=setTimeout(()=>ctrl.abort(),timeout);
-  try{
-    const r=await fetch(url,{signal:ctrl.signal});
-    clearTimeout(tid);
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const t=await r.text();
-    if(t.length<300)throw new Error('too short');
-    return t;
-  }finally{clearTimeout(tid);}
+  return fetch(url,{...opts,signal:ctrl.signal})
+    .finally(()=>clearTimeout(tid));
 }
-async function jsonProxyFetch(url,timeout=12000){
-  const ctrl=new AbortController();
-  const tid=setTimeout(()=>ctrl.abort(),timeout);
-  try{
-    const r=await fetch(url,{signal:ctrl.signal});
-    clearTimeout(tid);
-    if(!r.ok)throw new Error('HTTP '+r.status);
+
+async function tryDirect(u){
+  const r=await timedFetch(u,{mode:'cors',credentials:'omit'});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const t=await r.text();
+  if(t.length<300)throw new Error('too short');
+  return t;
+}
+
+async function tryProxy(proxyUrl, isJson=false){
+  const r=await timedFetch(proxyUrl);
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  if(isJson){
     const j=await r.json();
     const t=j&&(j.contents||j.body||j.data||'');
     if(!t||t.length<300)throw new Error('too short');
     return t;
-  }finally{clearTimeout(tid);}
+  }
+  const t=await r.text();
+  if(t.length<300)throw new Error('too short');
+  return t;
 }
-function makeProxies(u){
-  const enc=encodeURIComponent(u);
-  return[
-    ()=>jsonProxyFetch(`https://api.allorigins.win/get?url=${enc}`),
-    ()=>proxyFetch(`https://api.allorigins.win/raw?url=${enc}`),
-    ()=>proxyFetch(`https://corsproxy.io/?url=${enc}`),
-    ()=>proxyFetch(`https://api.codetabs.com/v1/proxy?quest=${enc}`),
-    ()=>proxyFetch(`https://thingproxy.freeboard.io/fetch/${u}`),
-    ()=>proxyFetch(`https://proxy.cors.sh/${u}`),
-    ()=>proxyFetch(`https://cors-proxy.fringe.zone/${u}`),
-  ];
-}
+
 async function fetchHtml(u){
-  return await Promise.any(makeProxies(u).map(fn=>fn()));
+  const enc=encodeURIComponent(u);
+  // まず Fetch API で直接試みる
+  try{
+    const t=await tryDirect(u);
+    console.log('[縦書き] direct fetch succeeded');
+    return t;
+  }catch(e){
+    console.log('[縦書き] direct fetch failed, trying proxies…',e.message);
+  }
+  // 直接取得できなければプロキシを並列で試す
+  const proxies=[
+    ()=>tryProxy(`https://api.allorigins.win/get?url=${enc}`,true),
+    ()=>tryProxy(`https://api.allorigins.win/raw?url=${enc}`),
+    ()=>tryProxy(`https://corsproxy.io/?url=${enc}`),
+    ()=>tryProxy(`https://api.codetabs.com/v1/proxy?quest=${enc}`),
+    ()=>tryProxy(`https://thingproxy.freeboard.io/fetch/${u}`),
+    ()=>tryProxy(`https://proxy.cors.sh/${u}`),
+    ()=>tryProxy(`https://cors-proxy.fringe.zone/${u}`),
+  ];
+  return await Promise.any(proxies.map(fn=>fn()));
 }
 
 let ldInterval=null;
