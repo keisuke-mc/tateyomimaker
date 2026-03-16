@@ -358,74 +358,86 @@ function parse(html,inputUrl){
   }
 
   // ── ナビリンク収集 ──
-  // URL正規化（末尾スラッシュ・クエリ除去して比較）
   function normUrl(u){try{const x=new URL(u);return x.origin+x.pathname.replace(/\/$/,'');}catch(_){return u;}}
-  const currentNorm=normUrl(inputUrl);
-  const seenU=new Set([currentNorm]);
-  const prevLinks=[], nextLinks=[], otherLinks=[];
 
-  doc.querySelectorAll('a[href]').forEach(a=>{
-    const href=(a.getAttribute('href')||'').trim();
-    const resolved=resolveUrl(href,inputUrl,origin);
-    if(!resolved)return;
+  // 1) <link rel="next/prev"> から確実なURLを取得
+  let linkNextUrl=null, linkPrevUrl=null;
+  const lnNext=doc.querySelector('link[rel="next"]');
+  const lnPrev=doc.querySelector('link[rel="prev"]');
+  if(lnNext){linkNextUrl=resolveUrl(lnNext.getAttribute('href'),inputUrl,origin);}
+  if(lnPrev){linkPrevUrl=resolveUrl(lnPrev.getAttribute('href'),inputUrl,origin);}
 
-    // 同オリジンチェック
-    let sameOrigin=false;
-    try{sameOrigin=new URL(resolved).origin===origin;}catch(_){}
-    if(!sameOrigin)return;
+  // 2) そのURLに対応する<a>を探してタイトルを取り出す
+  function getTitleForUrl(targetUrl){
+    if(!targetUrl)return null;
+    const tNorm=normUrl(targetUrl);
+    let found=null;
+    doc.querySelectorAll('a[href]').forEach(a=>{
+      if(found)return;
+      const r=resolveUrl((a.getAttribute('href')||''),inputUrl,origin);
+      if(!r||normUrl(r)!==tNorm)return;
+      found=a;
+    });
+    if(!found)return null;
+    // タイトル系子要素を優先
+    const tc=found.querySelector('[class*="title"],[class*="name"],[class*="subject"],[class*="caption"]');
+    if(tc) return tc.textContent.trim();
+    // なければ「前/次/←/→」ラベルを除いた残りのテキスト
+    const clone=found.cloneNode(true);
+    clone.querySelectorAll('*').forEach(x=>{
+      if(/^(前|次|prev|next|previous|forward|←|→|◀|▶|へ|話|章|回|のエピソード|episode)/i.test(x.textContent.trim()))
+        x.remove();
+    });
+    const t=clone.textContent.trim();
+    // 残ったテキストが現在タイトルと同じなら使わない
+    if(t&&t!==titleTxt)return t;
+    return null;
+  }
 
-    // 現在ページと同一URLは除外
-    if(seenU.has(normUrl(resolved)))return;
+  const prevLinks=[], nextLinks=[];
 
-    // ナビ系かどうか判定（クラス・パス）
-    const inNavEl=!!a.closest(
-      '[class*="nav"],[class*="pager"],[class*="prev"],[class*="next"],'
-      +'[class*="episode"],[class*="chapter"],[class*="footer"],[class*="link"],'
-      +'[id*="nav"],[id*="pager"],[id*="prev"],[id*="next"]'
-    );
-    const hasNavPath=/\/(works|episodes?|novel|chapter|ep|story|viewer|parts?)\b/i.test(resolved);
-    if(!inNavEl&&!hasNavPath)return;
+  if(linkPrevUrl){
+    const t=getTitleForUrl(linkPrevUrl)||'前のエピソード';
+    prevLinks.push({txt:t,url:linkPrevUrl});
+  }
+  if(linkNextUrl){
+    const t=getTitleForUrl(linkNextUrl)||'次のエピソード';
+    nextLinks.push({txt:t,url:linkNextUrl});
+  }
 
-    // 前/次の方向をクラス名・aria・テキストから判定
-    const cls=(a.className||'')+(a.getAttribute('aria-label')||'');
-    const allText=a.textContent;
-    const checkStr=cls+' '+allText;
-    const isPrev=/前|previous|prev(?!iew)\b/i.test(checkStr);
-    const isNext=/次|forward|next\b/i.test(checkStr);
-
-    // 表示タイトルを取得: title/name系の子要素を優先、なければ全テキスト
-    let displayTxt='';
-    // 「次のエピソード」「前のエピソード」等のラベル要素を除いたタイトル要素を探す
-    const titleChild=a.querySelector(
-      '[class*="title"],[class*="name"],[class*="subject"],[class*="caption"]'
-    );
-    if(titleChild){
-      displayTxt=titleChild.textContent.trim();
-    }
-    // タイトル子要素がなければ全テキストをクリーニング
-    if(!displayTxt){
-      // ラベル系テキスト（「次のエピソード」「前へ」等）を除去して残りをタイトルとして扱う
-      const clone=a.cloneNode(true);
-      clone.querySelectorAll('[class*="text"],[class*="label"],[class*="direction"],[class*="icon"],[class*="arrow"]')
-        .forEach(x=>{
-          const t=x.textContent.trim();
-          if(/^(前|次|prev|next|previous|forward|←|→|◀|▶|へ|話|章|回|のエピソード)/i.test(t))x.remove();
+  // <link rel>がない場合のフォールバック: <a>のクラス・テキストから判定
+  if(!linkNextUrl&&!linkPrevUrl){
+    const seenU=new Set([normUrl(inputUrl)]);
+    doc.querySelectorAll('a[href]').forEach(a=>{
+      const href=(a.getAttribute('href')||'').trim();
+      const resolved=resolveUrl(href,inputUrl,origin);
+      if(!resolved)return;
+      let sameOrigin=false;
+      try{sameOrigin=new URL(resolved).origin===origin;}catch(_){}
+      if(!sameOrigin||seenU.has(normUrl(resolved)))return;
+      const inNavEl=!!a.closest('[class*="nav"],[class*="pager"],[class*="prev"],[class*="next"],[class*="episode"],[class*="chapter"],[id*="prev"],[id*="next"]');
+      const hasNavPath=/\/(works|episodes?|novel|chapter|ep|story|viewer|parts?)\b/i.test(resolved);
+      if(!inNavEl&&!hasNavPath)return;
+      const checkStr=(a.className||'')+' '+(a.getAttribute('aria-label')||'')+' '+a.textContent;
+      const isPrev=/前|previous|prev(?!iew)\b/i.test(checkStr);
+      const isNext=/次|forward|next\b/i.test(checkStr);
+      if(!isPrev&&!isNext)return;
+      seenU.add(normUrl(resolved));
+      // タイトル抽出
+      const tc=a.querySelector('[class*="title"],[class*="name"],[class*="subject"]');
+      let t=tc?tc.textContent.trim():'';
+      if(!t||t===titleTxt){
+        const clone=a.cloneNode(true);
+        clone.querySelectorAll('*').forEach(x=>{
+          if(/^(前|次|prev|next|←|→|◀|▶|のエピソード)/i.test(x.textContent.trim()))x.remove();
         });
-      displayTxt=clone.textContent.trim().slice(0,80);
-    }
-    // それでも空ならリンク全体のテキストをそのまま使う（短くする）
-    if(!displayTxt) displayTxt=allText.trim().slice(0,60);
-    if(!displayTxt) return;
-
-    // 現在のエピソードタイトルと同一なら除外
-    if(titleTxt&&displayTxt===titleTxt)return;
-
-    seenU.add(normUrl(resolved));
-
-    if(isPrev) prevLinks.push({txt:displayTxt,url:resolved});
-    else if(isNext) nextLinks.push({txt:displayTxt,url:resolved});
-    else otherLinks.push({txt:displayTxt,url:resolved});
-  });
+        t=clone.textContent.trim();
+      }
+      if(!t||t===titleTxt) t=isPrev?'前のエピソード':'次のエピソード';
+      if(isPrev) prevLinks.push({txt:t,url:resolved});
+      else nextLinks.push({txt:t,url:resolved});
+    });
+  }
 
   // 描画
   $ca.innerHTML='';$ht.textContent=titleTxt||'—';
@@ -476,34 +488,24 @@ function parse(html,inputUrl){
   }
 
   // 次話帯ボタン（高さ全体の大バナー）
-  const nextTargets=nextLinks.length>0?nextLinks:otherLinks.slice(0,1);
-  if(nextTargets.length>0){
-    nextTargets.forEach(({txt,url})=>{
+  if(nextLinks.length>0){
+    nextLinks.forEach(({txt,url})=>{
       const band=document.createElement('a');band.className='nav-next-band';
       band.href='#';
       const inner=document.createElement('div');inner.className='nav-next-inner';
       const lbl=document.createElement('span');lbl.className='nav-next-label';lbl.textContent='次のエピソード';
-      const title=document.createElement('span');title.className='nav-next-title';title.textContent=txt;
+      const title=document.createElement('span');title.className='nav-next-title';
+      // タイトルが「次のエピソード」デフォルト値のときは非表示
+      if(txt!=='次のエピソード') title.textContent=txt;
       const arrow=document.createElement('span');arrow.className='nav-next-arrow';arrow.textContent='◁';
-      inner.appendChild(lbl);inner.appendChild(title);inner.appendChild(arrow);
+      inner.appendChild(lbl);
+      if(title.textContent) inner.appendChild(title);
+      inner.appendChild(arrow);
       band.appendChild(inner);
       band.addEventListener('click',e=>{e.preventDefault();$urlInput.value=url;load(url);});
       $ca.appendChild(band);
       makeVisible(band);
     });
-  } else if(prevLinks.length===0&&otherLinks.length>0){
-    // 前/次の判別ができなかった場合は小さいリストで表示
-    const ob=document.createElement('div');ob.className='nav-prev-block';
-    const ohd=document.createElement('span');ohd.className='nav-prev-hd';ohd.textContent='関連エピソード';
-    ob.appendChild(ohd);
-    otherLinks.slice(0,5).forEach(({txt,url})=>{
-      const a=document.createElement('a');a.className='nav-prev-a';
-      a.textContent=txt;a.href='#';
-      a.addEventListener('click',e=>{e.preventDefault();$urlInput.value=url;load(url);});
-      ob.appendChild(a);
-    });
-    $ca.appendChild(ob);
-    makeVisible(ob);
   }
 
   show($rd);
