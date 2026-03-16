@@ -116,26 +116,66 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
 .para:first-child{margin-left:0}
 .spacer{display:block;width:1.2rem}
 
-.nav-block{
+/* ── 前話ブロック（小）── */
+.nav-prev-block{
   display:inline-block;vertical-align:top;
-  margin-left:5rem;padding:0 1.6rem;
-  border-left:1px solid var(--div);border-right:1px solid var(--div);
-  opacity:0;transform:translateX(-12px);transition:opacity 0.5s,transform 0.5s;
+  margin-left:4rem;padding:0 1.4rem;
+  border-left:1px solid var(--div);
+  opacity:0;transform:translateX(-10px);
+  transition:opacity 0.5s,transform 0.5s;
+  align-self:flex-start;
 }
-.nav-block.vis{opacity:1;transform:translateX(0)}
-.nav-hd{display:block;font-size:0.72rem;color:var(--ink-lt);letter-spacing:0.25em;margin-bottom:1.8rem}
-.nav-a{
+.nav-prev-block.vis{opacity:1;transform:translateX(0)}
+.nav-prev-hd{display:block;font-size:0.68rem;color:var(--ink-lt);letter-spacing:0.22em;margin-bottom:1.2rem}
+.nav-prev-a{
   display:block;color:var(--ink);text-decoration:none;
-  font-size:0.92rem;letter-spacing:0.1em;
-  padding:0.5rem 0;border-bottom:1px solid var(--div);
+  font-size:0.88rem;letter-spacing:0.1em;writing-mode:vertical-rl;
   cursor:pointer;transition:color 0.15s;
 }
-.nav-a:last-child{border-bottom:none}
-.nav-a:hover{color:var(--accent)}
-.nav-dir{
-  display:inline-block;font-size:0.68rem;color:var(--ink-lt);
-  letter-spacing:0.1em;margin-bottom:0.3rem;
+.nav-prev-a:hover{color:var(--accent)}
+
+/* ── 次話帯ボタン（大）── */
+.nav-next-band{
+  /* vertical-rl なので height=100%が縦全体に伸びる */
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;justify-content:center;
+  margin-left:3rem;
+  width:auto;
+  /* #caのheight全体を使う */
+  min-height:calc(100vh - var(--hdr) - 4px);
+  padding:0 1.8rem;
+  background:var(--ink);
+  color:var(--paper);
+  cursor:pointer;
+  text-decoration:none;
+  border:none;
+  opacity:0;transform:translateX(-16px);
+  transition:opacity 0.55s,transform 0.55s,background 0.2s;
+  position:relative;overflow:hidden;
 }
+.nav-next-band::before{
+  content:'';position:absolute;inset:0;
+  background:var(--accent);
+  transform:scaleX(0);transform-origin:right center;
+  transition:transform 0.3s ease;
+}
+.nav-next-band:hover::before{transform:scaleX(1);}
+.nav-next-band.vis{opacity:1;transform:translateX(0)}
+.nav-next-inner{
+  display:flex;flex-direction:column;align-items:center;gap:1.6rem;
+  position:relative;z-index:1;
+}
+.nav-next-label{
+  writing-mode:vertical-rl;font-size:0.7rem;letter-spacing:0.35em;
+  color:rgba(237,229,207,0.55);
+}
+.nav-next-title{
+  writing-mode:vertical-rl;font-size:1.05rem;font-weight:500;
+  letter-spacing:0.18em;color:var(--paper);
+  max-height:60vh;overflow:hidden;text-overflow:ellipsis;
+}
+.nav-next-arrow{font-size:1.4rem;color:rgba(237,229,207,0.6);margin-top:0.5rem;}
 
 ruby{ruby-align:center}rt{font-size:0.52em}
 </style>
@@ -383,36 +423,58 @@ function parse(html,inputUrl){
   }
   $ca.appendChild(txb);
 
-  // ナビブロック（前話→次話→その他の順）
-  const allNav=[
-    ...prevLinks.map(l=>({...l,dir:'◀ 前話'})),
-    ...nextLinks.map(l=>({...l,dir:'次話 ▶'})),
-    ...otherLinks.slice(0,6).map(l=>({...l,dir:''})),
-  ];
+  // ── ナビ描画 ──
+  function makeVisible(el){
+    const obs=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{if(e.isIntersecting){el.classList.add('vis');obs.disconnect();}});
+    },{root:$ca,threshold:0.05});
+    obs.observe(el);
+  }
 
-  if(allNav.length>0){
-    const nb=document.createElement('div');nb.className='nav-block';
-    const hd=document.createElement('span');hd.className='nav-hd';hd.textContent='— 前後のエピソード —';
-    nb.appendChild(hd);
-    allNav.forEach(({txt,url,dir})=>{
-      const wrap=document.createElement('div');
-      wrap.style.cssText='padding:0.5rem 0;border-bottom:1px solid var(--div)';
-      if(dir){
-        const d=document.createElement('span');d.className='nav-dir';d.textContent=dir;
-        wrap.appendChild(d);
-      }
-      const a=document.createElement('a');a.className='nav-a';
-      a.style.cssText='padding:0;border-bottom:none';
+  // 前話ブロック（小さいテキストリスト）
+  if(prevLinks.length>0){
+    const pb=document.createElement('div');pb.className='nav-prev-block';
+    const phd=document.createElement('span');phd.className='nav-prev-hd';phd.textContent='◀ 前話';
+    pb.appendChild(phd);
+    prevLinks.forEach(({txt,url})=>{
+      const a=document.createElement('a');a.className='nav-prev-a';
       a.textContent=txt;a.href='#';
       a.addEventListener('click',e=>{e.preventDefault();$urlInput.value=url;load(url);});
-      wrap.appendChild(a);
-      nb.appendChild(wrap);
+      pb.appendChild(a);
     });
-    $ca.appendChild(nb);
-    const obs=new IntersectionObserver(entries=>{
-      entries.forEach(e=>{if(e.isIntersecting)nb.classList.add('vis');});
-    },{root:$ca,threshold:0.1});
-    obs.observe(nb);
+    $ca.appendChild(pb);
+    makeVisible(pb);
+  }
+
+  // 次話帯ボタン（高さ全体の大バナー）
+  const nextTargets=nextLinks.length>0?nextLinks:otherLinks.slice(0,1);
+  if(nextTargets.length>0){
+    nextTargets.forEach(({txt,url})=>{
+      const band=document.createElement('a');band.className='nav-next-band';
+      band.href='#';
+      const inner=document.createElement('div');inner.className='nav-next-inner';
+      const lbl=document.createElement('span');lbl.className='nav-next-label';lbl.textContent='次のエピソード';
+      const title=document.createElement('span');title.className='nav-next-title';title.textContent=txt;
+      const arrow=document.createElement('span');arrow.className='nav-next-arrow';arrow.textContent='◁';
+      inner.appendChild(lbl);inner.appendChild(title);inner.appendChild(arrow);
+      band.appendChild(inner);
+      band.addEventListener('click',e=>{e.preventDefault();$urlInput.value=url;load(url);});
+      $ca.appendChild(band);
+      makeVisible(band);
+    });
+  } else if(prevLinks.length===0&&otherLinks.length>0){
+    // 前/次の判別ができなかった場合は小さいリストで表示
+    const ob=document.createElement('div');ob.className='nav-prev-block';
+    const ohd=document.createElement('span');ohd.className='nav-prev-hd';ohd.textContent='関連エピソード';
+    ob.appendChild(ohd);
+    otherLinks.slice(0,5).forEach(({txt,url})=>{
+      const a=document.createElement('a');a.className='nav-prev-a';
+      a.textContent=txt;a.href='#';
+      a.addEventListener('click',e=>{e.preventDefault();$urlInput.value=url;load(url);});
+      ob.appendChild(a);
+    });
+    $ca.appendChild(ob);
+    makeVisible(ob);
   }
 
   show($rd);
