@@ -66,28 +66,28 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
   animation:sp 0.75s linear infinite;
 }
 @keyframes sp{to{transform:rotate(360deg)}}
-#ld-msg{font-size:0.78rem;color:var(--ink-lt);letter-spacing:0.15em;margin-top:0.2rem;min-height:1.2em}
+#ld-msg{font-size:0.78rem;color:var(--ink-lt);letter-spacing:0.15em;min-height:1.2em}
 
 #rd{height:100vh;display:none;flex-direction:column;overflow:hidden}
 #hdr{
   height:var(--hdr);flex-shrink:0;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 1.5rem;background:rgba(237,229,207,0.97);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:0 1.2rem;background:rgba(237,229,207,0.97);
   border-bottom:1px solid var(--div);z-index:10;
 }
-#bk{
-  font-family:var(--f);font-size:0.82rem;color:var(--ink-mid);
-  background:none;border:1px solid var(--div);padding:0.38rem 1rem;
-  border-radius:2px;cursor:pointer;letter-spacing:0.15em;transition:all 0.15s;
-  white-space:nowrap;
+.hdr-btn{
+  font-family:var(--f);font-size:0.78rem;color:var(--ink-mid);
+  background:none;border:1px solid var(--div);padding:0.35rem 0.9rem;
+  border-radius:2px;cursor:pointer;letter-spacing:0.12em;
+  transition:all 0.15s;white-space:nowrap;flex-shrink:0;
 }
-#bk:hover{background:var(--paper2)}
+.hdr-btn:hover{background:var(--paper2)}
 #htitle{
   font-size:0.88rem;color:var(--ink-mid);letter-spacing:0.12em;
   flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  text-align:center;padding:0 1rem;
+  text-align:center;
 }
-#pct{font-size:0.78rem;color:var(--ink-lt);min-width:36px;text-align:right;white-space:nowrap}
+#pct{font-size:0.78rem;color:var(--ink-lt);min-width:34px;text-align:right;white-space:nowrap;flex-shrink:0}
 #pbar{height:2px;background:var(--div);flex-shrink:0}
 #pfill{height:100%;background:var(--accent);width:0%;transition:width 0.1s linear}
 
@@ -105,12 +105,17 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
 #ca::-webkit-scrollbar-thumb{background:rgba(27,21,8,0.28);border-radius:3px}
 #ca::-webkit-scrollbar-thumb:hover{background:rgba(27,21,8,0.45)}
 
+/* fullscreen時もレイアウト維持 */
+:fullscreen #rd, :-webkit-full-screen #rd{height:100vh}
+:fullscreen body, :-webkit-full-screen body{height:100vh}
+
 .t-block{display:inline-block;vertical-align:top;margin-left:3.5rem;padding:0 1.2rem;border-left:1px solid var(--div)}
 .ep-title{font-size:1.3rem;font-weight:500;letter-spacing:0.22em;color:var(--accent);display:block}
 .tx-block{display:inline-block;vertical-align:top}
 .para{display:block;margin-left:1.6rem}
 .para:first-child{margin-left:0}
 .spacer{display:block;width:1.2rem}
+
 .nav-block{
   display:inline-block;vertical-align:top;
   margin-left:5rem;padding:0 1.6rem;
@@ -118,15 +123,20 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
   opacity:0;transform:translateX(-12px);transition:opacity 0.5s,transform 0.5s;
 }
 .nav-block.vis{opacity:1;transform:translateX(0)}
-.nav-hd{display:block;font-size:0.75rem;color:var(--ink-lt);letter-spacing:0.25em;margin-bottom:1.8rem}
+.nav-hd{display:block;font-size:0.72rem;color:var(--ink-lt);letter-spacing:0.25em;margin-bottom:1.8rem}
 .nav-a{
   display:block;color:var(--ink);text-decoration:none;
-  font-size:0.95rem;letter-spacing:0.1em;
+  font-size:0.92rem;letter-spacing:0.1em;
   padding:0.5rem 0;border-bottom:1px solid var(--div);
   cursor:pointer;transition:color 0.15s;
 }
 .nav-a:last-child{border-bottom:none}
 .nav-a:hover{color:var(--accent)}
+.nav-dir{
+  display:inline-block;font-size:0.68rem;color:var(--ink-lt);
+  letter-spacing:0.1em;margin-bottom:0.3rem;
+}
+
 ruby{ruby-align:center}rt{font-size:0.52em}
 </style>
 </head>
@@ -150,9 +160,10 @@ ruby{ruby-align:center}rt{font-size:0.52em}
 
 <div id="rd">
   <div id="hdr">
-    <button id="bk">← 戻 る</button>
+    <button class="hdr-btn" id="bk">← 戻る</button>
     <div id="htitle"></div>
     <div id="pct">0%</div>
+    <button class="hdr-btn" id="fsBtn" title="全画面">⛶</button>
   </div>
   <div id="pbar"><div id="pfill"></div></div>
   <div id="ca"></div>
@@ -170,18 +181,15 @@ const $inp=document.getElementById('inp'),
       $pf=document.getElementById('pfill'),
       $pct=document.getElementById('pct'),
       $bk=document.getElementById('bk'),
+      $fsBtn=document.getElementById('fsBtn'),
       $ldMsg=document.getElementById('ld-msg');
 
 let scrollHandler=null;
 
-function show(el){
-  [$inp,$ld,$rd].forEach(e=>{e.style.display='none'});
-  el.style.display='flex';
-}
+function show(el){[$inp,$ld,$rd].forEach(e=>{e.style.display='none'});el.style.display='flex';}
 function cleanupReader(){
   if(scrollHandler){$ca.removeEventListener('scroll',scrollHandler);scrollHandler=null;}
-  $ca.innerHTML='';
-  $pf.style.width='0%';$pct.textContent='0%';
+  $ca.innerHTML='';$pf.style.width='0%';$pct.textContent='0%';
 }
 
 $bk.addEventListener('click',()=>{show($inp);cleanupReader();});
@@ -190,16 +198,32 @@ $go.addEventListener('click',()=>{
   const u=$urlInput.value.trim();
   if(!u){$err.textContent='URLを入力してください';return;}
   if(!/^https?:\/\//i.test(u)){$err.textContent='https:// で始まるURLを入力してください';return;}
-  $err.textContent='';
-  load(u);
+  $err.textContent='';load(u);
 });
 
-// ── Fetch: 全プロキシを並列で投げ、最初に成功したものを採用 ──
-async function proxyFetch(proxyUrl, timeout=12000){
+// ── 全画面 ──
+$fsBtn.addEventListener('click',()=>{
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    const el=document.documentElement;
+    (el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen).call(el);
+  }else{
+    (document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen).call(document);
+  }
+});
+document.addEventListener('fullscreenchange',updateFsBtn);
+document.addEventListener('webkitfullscreenchange',updateFsBtn);
+function updateFsBtn(){
+  const fs=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  $fsBtn.textContent=fs?'✕ 全画面':'⛶';
+  $fsBtn.title=fs?'全画面を終了':'全画面表示';
+}
+
+// ── Fetch ──
+async function proxyFetch(url,timeout=12000){
   const ctrl=new AbortController();
   const tid=setTimeout(()=>ctrl.abort(),timeout);
   try{
-    const r=await fetch(proxyUrl,{signal:ctrl.signal});
+    const r=await fetch(url,{signal:ctrl.signal});
     clearTimeout(tid);
     if(!r.ok)throw new Error('HTTP '+r.status);
     const t=await r.text();
@@ -207,12 +231,11 @@ async function proxyFetch(proxyUrl, timeout=12000){
     return t;
   }finally{clearTimeout(tid);}
 }
-
-async function jsonProxyFetch(proxyUrl, timeout=12000){
+async function jsonProxyFetch(url,timeout=12000){
   const ctrl=new AbortController();
   const tid=setTimeout(()=>ctrl.abort(),timeout);
   try{
-    const r=await fetch(proxyUrl,{signal:ctrl.signal});
+    const r=await fetch(url,{signal:ctrl.signal});
     clearTimeout(tid);
     if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
@@ -221,52 +244,40 @@ async function jsonProxyFetch(proxyUrl, timeout=12000){
     return t;
   }finally{clearTimeout(tid);}
 }
-
 function makeProxies(u){
   const enc=encodeURIComponent(u);
-  return [
+  return[
     ()=>jsonProxyFetch(`https://api.allorigins.win/get?url=${enc}`),
     ()=>proxyFetch(`https://api.allorigins.win/raw?url=${enc}`),
     ()=>proxyFetch(`https://corsproxy.io/?url=${enc}`),
     ()=>proxyFetch(`https://api.codetabs.com/v1/proxy?quest=${enc}`),
     ()=>proxyFetch(`https://thingproxy.freeboard.io/fetch/${u}`),
-    ()=>proxyFetch(`https://proxy.cors.sh/${u}`,12000),
-    ()=>proxyFetch(`https://cors-proxy.fringe.zone/${u}`,12000),
+    ()=>proxyFetch(`https://proxy.cors.sh/${u}`),
+    ()=>proxyFetch(`https://cors-proxy.fringe.zone/${u}`),
   ];
+}
+async function fetchHtml(u){
+  return await Promise.any(makeProxies(u).map(fn=>fn()));
 }
 
 let ldInterval=null;
 function startLoadingAnim(){
   const msgs=['接続中…','サーバーに問い合わせ中…','もう少しお待ちください…','取得中…'];
-  let i=0;
-  $ldMsg.textContent=msgs[0];
+  let i=0;$ldMsg.textContent=msgs[0];
   ldInterval=setInterval(()=>{i=(i+1)%msgs.length;$ldMsg.textContent=msgs[i];},2200);
 }
-function stopLoadingAnim(){if(ldInterval){clearInterval(ldInterval);ldInterval=null;}}
-
-async function fetchHtml(u){
-  const proxies=makeProxies(u);
-  // 全プロキシを同時に投げ、最初に成功したものを返す (Promise.any)
-  return await Promise.any(proxies.map(fn=>fn()));
-}
+function stopLoadingAnim(){if(ldInterval){clearInterval(ldInterval);ldInterval=null;$ldMsg.textContent='';}}
 
 async function load(u){
-  cleanupReader();
-  show($ld);
-  $go.disabled=true;
-  startLoadingAnim();
+  cleanupReader();show($ld);$go.disabled=true;startLoadingAnim();
   try{
     const html=await fetchHtml(u);
-    stopLoadingAnim();
-    parse(html,u);
+    stopLoadingAnim();parse(html,u);
   }catch(e){
-    stopLoadingAnim();
-    show($inp);
+    stopLoadingAnim();show($inp);
     $err.textContent='読み込みに失敗しました。対象サイトがプロキシをブロックしている可能性があります。';
     console.error('[縦書き]',e);
-  }finally{
-    $go.disabled=false;
-  }
+  }finally{$go.disabled=false;}
 }
 
 // ── URL解決 ──
@@ -306,29 +317,49 @@ function parse(html,inputUrl){
     paras.push(p.innerHTML.trim());
   }
 
-  // ナビリンク収集
-  const navLinks=[];
+  // ── ナビリンク収集（前話・次話を正確に判別）──
+  // 現在ページのURLからパス番号を取得しておく
+  let currentPath='';
+  try{currentPath=new URL(inputUrl).pathname;}catch(_){}
+
+  const prevLinks=[], nextLinks=[], otherLinks=[];
   const seenU=new Set([inputUrl]);
+
   doc.querySelectorAll('a[href]').forEach(a=>{
     const href=(a.getAttribute('href')||'').trim();
-    const txt=a.textContent.trim();
+    // アンカーのテキストはdirectなtextNodeのみ取得（子要素のタイトル混入を防ぐ）
+    const txt=getDirectText(a).trim()||a.textContent.trim();
     if(!txt||txt.length>80)return;
+    // 現在のページタイトルと完全一致するものは除外
+    if(titleTxt&&txt===titleTxt)return;
+
     const resolved=resolveUrl(href,inputUrl,origin);
     if(!resolved||seenU.has(resolved))return;
     let sameOrigin=false;
     try{sameOrigin=new URL(resolved).origin===origin;}catch(_){}
     if(!sameOrigin)return;
-    const inNavEl=!!a.closest('[class*="nav"],[class*="pager"],[class*="prev"],[class*="next"],[class*="episode"],[class*="chapter"],[class*="footer"],[class*="link"]');
+
+    const inNavEl=!!a.closest(
+      '[class*="nav"],[class*="pager"],[class*="prev"],[class*="next"],'
+      +'[class*="episode"],[class*="chapter"],[class*="footer"],[class*="link"],'
+      +'[id*="nav"],[id*="pager"],[id*="prev"],[id*="next"]'
+    );
     const hasNavPath=/\/(works|episodes?|novel|chapter|ep|story|viewer|parts?)\b/i.test(resolved);
-    if(inNavEl||hasNavPath){
-      seenU.add(resolved);
-      navLinks.push({txt,url:resolved});
-    }
+    if(!inNavEl&&!hasNavPath)return;
+
+    seenU.add(resolved);
+
+    // 前話・次話の判定
+    const isPrev=/前|前話|前章|前回|前のエピ|＜|《|←|previous|prev\b/i.test(txt+' '+(a.className||''));
+    const isNext=/次|次話|次章|次回|次のエピ|＞|》|→|next\b/i.test(txt+' '+(a.className||''));
+
+    if(isPrev)prevLinks.push({txt,url:resolved});
+    else if(isNext)nextLinks.push({txt,url:resolved});
+    else otherLinks.push({txt,url:resolved});
   });
 
   // 描画
-  $ca.innerHTML='';
-  $ht.textContent=titleTxt||'—';
+  $ca.innerHTML='';$ht.textContent=titleTxt||'—';
 
   if(titleTxt){
     const tb=document.createElement('div');tb.className='t-block';
@@ -339,8 +370,7 @@ function parse(html,inputUrl){
   const txb=document.createElement('div');txb.className='tx-block';
   if(paras.length===0){
     const p=document.createElement('p');p.className='para';p.style.color='var(--ink-lt)';
-    p.textContent='本文（#p1, #p2…）が見つかりませんでした。';
-    txb.appendChild(p);
+    p.textContent='本文（#p1, #p2…）が見つかりませんでした。';txb.appendChild(p);
   }else{
     paras.forEach(h=>{
       const plain=h.replace(/<[^>]+>/g,'').trim();
@@ -353,15 +383,30 @@ function parse(html,inputUrl){
   }
   $ca.appendChild(txb);
 
-  if(navLinks.length>0){
+  // ナビブロック（前話→次話→その他の順）
+  const allNav=[
+    ...prevLinks.map(l=>({...l,dir:'◀ 前話'})),
+    ...nextLinks.map(l=>({...l,dir:'次話 ▶'})),
+    ...otherLinks.slice(0,6).map(l=>({...l,dir:''})),
+  ];
+
+  if(allNav.length>0){
     const nb=document.createElement('div');nb.className='nav-block';
-    const hd=document.createElement('span');hd.className='nav-hd';hd.textContent='— 次 へ —';
+    const hd=document.createElement('span');hd.className='nav-hd';hd.textContent='— 前後のエピソード —';
     nb.appendChild(hd);
-    navLinks.forEach(({txt,url})=>{
+    allNav.forEach(({txt,url,dir})=>{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='padding:0.5rem 0;border-bottom:1px solid var(--div)';
+      if(dir){
+        const d=document.createElement('span');d.className='nav-dir';d.textContent=dir;
+        wrap.appendChild(d);
+      }
       const a=document.createElement('a');a.className='nav-a';
+      a.style.cssText='padding:0;border-bottom:none';
       a.textContent=txt;a.href='#';
       a.addEventListener('click',e=>{e.preventDefault();$urlInput.value=url;load(url);});
-      nb.appendChild(a);
+      wrap.appendChild(a);
+      nb.appendChild(wrap);
     });
     $ca.appendChild(nb);
     const obs=new IntersectionObserver(entries=>{
@@ -374,6 +419,13 @@ function parse(html,inputUrl){
   requestAnimationFrame(()=>{$ca.scrollLeft=$ca.scrollWidth;updateProg();});
   scrollHandler=()=>updateProg();
   $ca.addEventListener('scroll',scrollHandler,{passive:true});
+}
+
+// 子要素のテキストを除いた直接テキストだけ取得
+function getDirectText(el){
+  let t='';
+  el.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent;});
+  return t;
 }
 
 function updateProg(){
