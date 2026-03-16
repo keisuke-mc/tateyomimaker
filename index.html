@@ -6,22 +6,17 @@
 <title>縦書きリーダー</title>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;800&family=Noto+Serif+JP:wght@300;400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --paper:   #EDE5CF;
-  --paper2:  #E4DAC1;
-  --ink:     #1B1508;
-  --ink-mid: #3A3020;
-  --ink-lt:  #6B5A3E;
-  --accent:  #7B2E14;
-  --div:     rgba(27,21,8,0.12);
-  --hdr:     56px;
-  --f: 'Shippori Mincho B1','Noto Serif JP','Yu Mincho',serif;
+:root{
+  --paper:#EDE5CF;--paper2:#E4DAC1;
+  --ink:#1B1508;--ink-mid:#3A3020;--ink-lt:#6B5A3E;
+  --accent:#7B2E14;--div:rgba(27,21,8,0.12);
+  --hdr:54px;
+  --f:'Shippori Mincho B1','Noto Serif JP','Yu Mincho',serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;background:var(--paper)}
-body{font-family:var(--f);color:var(--ink)}
+html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--f);color:var(--ink)}
 
-/* ── Input Screen ── */
+/* ── Input ── */
 #inp{
   height:100vh;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:0;padding:2rem;
@@ -29,46 +24,36 @@ body{font-family:var(--f);color:var(--ink)}
 }
 #inp::before{
   content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:
-    repeating-linear-gradient(90deg,var(--div) 0 1px,transparent 1px 88px),
+  background-image:repeating-linear-gradient(90deg,var(--div) 0 1px,transparent 1px 88px),
     repeating-linear-gradient(0deg,var(--div) 0 1px,transparent 1px 88px);
   opacity:0.35;
 }
 .i-logo{
   writing-mode:vertical-rl;font-size:3.2rem;font-weight:800;
-  letter-spacing:0.5em;color:var(--ink);margin-bottom:2.8rem;
-  position:relative;
+  letter-spacing:0.5em;color:var(--ink);margin-bottom:2.8rem;position:relative;
 }
 .i-logo::after{
   content:'';display:block;width:2px;height:100%;
   background:var(--accent);position:absolute;right:-1.2rem;top:0;
 }
-.i-sub{
-  font-size:0.82rem;color:var(--ink-lt);letter-spacing:0.3em;
-  margin-bottom:2.2rem;position:relative;
-}
+.i-sub{font-size:0.82rem;color:var(--ink-lt);letter-spacing:0.3em;margin-bottom:2.2rem;position:relative}
 .i-wrap{
   display:flex;width:min(580px,100%);
   border:1px solid rgba(27,21,8,0.28);border-radius:2px;
   overflow:hidden;box-shadow:0 4px 32px rgba(27,21,8,0.1);
-  position:relative;
 }
-#url{
+#url-input{
   flex:1;padding:0.9rem 1.2rem;font-family:var(--f);font-size:0.95rem;
   border:none;background:rgba(255,255,255,0.65);color:var(--ink);outline:none;
 }
-#url::placeholder{color:var(--ink-lt);opacity:0.5}
+#url-input::placeholder{color:var(--ink-lt);opacity:0.5}
 #go{
   padding:0 2rem;background:var(--ink);color:var(--paper);
   font-family:var(--f);font-size:1rem;letter-spacing:0.2em;
   border:none;cursor:pointer;transition:background 0.2s;flex-shrink:0;
 }
 #go:hover{background:var(--accent)}
-#go:active{transform:scale(0.98)}
-#err{
-  margin-top:1rem;color:var(--accent);font-size:0.82rem;
-  letter-spacing:0.12em;min-height:1.2em;position:relative;
-}
+#err{margin-top:1rem;color:var(--accent);font-size:0.82rem;letter-spacing:0.12em;min-height:1.2em}
 
 /* ── Loading ── */
 #ld{
@@ -83,8 +68,11 @@ body{font-family:var(--f);color:var(--ink)}
 }
 @keyframes sp{to{transform:rotate(360deg)}}
 
-/* ── Reading Screen ── */
-#rd{height:100vh;display:none;flex-direction:column}
+/* ── Reading ── */
+#rd{
+  /* 重要: overflow:hidden で子のmin-height:0が効く */
+  height:100vh;display:none;flex-direction:column;overflow:hidden;
+}
 
 #hdr{
   height:var(--hdr);flex-shrink:0;
@@ -92,7 +80,6 @@ body{font-family:var(--f);color:var(--ink)}
   padding:0 1.5rem;
   background:rgba(237,229,207,0.97);
   border-bottom:1px solid var(--div);
-  backdrop-filter:blur(6px);
   z-index:10;
 }
 #bk{
@@ -100,106 +87,88 @@ body{font-family:var(--f);color:var(--ink)}
   background:none;border:1px solid var(--div);padding:0.38rem 1rem;
   border-radius:2px;cursor:pointer;letter-spacing:0.15em;transition:all 0.15s;
 }
-#bk:hover{background:var(--paper2);color:var(--ink)}
+#bk:hover{background:var(--paper2)}
 #htitle{
   font-size:0.88rem;color:var(--ink-mid);letter-spacing:0.12em;
-  max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 #pct{font-size:0.78rem;color:var(--ink-lt);letter-spacing:0.08em;min-width:40px;text-align:right}
-
 #pbar{height:2px;background:var(--div);flex-shrink:0}
-#pfill{height:100%;background:var(--accent);width:0%;transition:width 0.12s linear}
+#pfill{height:100%;background:var(--accent);width:0%;transition:width 0.1s linear}
 
-/* ── Content Area ── */
+/* ── Content ── */
 #ca{
-  flex:1;
-  writing-mode:vertical-rl;
-  text-orientation:mixed;
+  /* flex:1 + min-height:0 が見切れ修正の核心 */
+  flex:1;min-height:0;min-width:0;
+  writing-mode:vertical-rl;text-orientation:mixed;
   overflow-x:auto;overflow-y:hidden;
-  padding:2.8rem 3.5rem;
-  font-size:1.12rem;line-height:2.15;letter-spacing:0.06em;
+  padding:2rem 2.8rem;
+  font-size:1.1rem;line-height:2.2;letter-spacing:0.05em;
   -webkit-overflow-scrolling:touch;
   background:var(--paper);
 }
-#ca::-webkit-scrollbar{height:5px}
+#ca::-webkit-scrollbar{height:6px}
 #ca::-webkit-scrollbar-track{background:var(--paper2)}
-#ca::-webkit-scrollbar-thumb{background:rgba(27,21,8,0.22);border-radius:3px}
-#ca::-webkit-scrollbar-thumb:hover{background:rgba(27,21,8,0.4)}
+#ca::-webkit-scrollbar-thumb{background:rgba(27,21,8,0.28);border-radius:3px}
+#ca::-webkit-scrollbar-thumb:hover{background:rgba(27,21,8,0.45)}
 
-/* Title column */
+/* Title block */
 .t-block{
   display:inline-block;vertical-align:top;
-  margin-left:4rem;
-  padding:0 1.2rem;
+  margin-left:3.5rem;padding:0 1.2rem;
   border-left:1px solid var(--div);
 }
 .ep-title{
-  font-size:1.35rem;font-weight:500;letter-spacing:0.22em;
+  font-size:1.3rem;font-weight:500;letter-spacing:0.22em;
   color:var(--accent);display:block;
 }
-.ep-meta{
-  font-size:0.78rem;color:var(--ink-lt);letter-spacing:0.15em;
-  margin-top:1.5rem;display:block;
-}
 
-/* Text block: each p becomes a column */
+/* Text block */
 .tx-block{display:inline-block;vertical-align:top}
-.para{
-  display:block;
-  margin-left:1.8rem;
-}
+.para{display:block;margin-left:1.6rem}
 .para:first-child{margin-left:0}
+.spacer{display:block;width:1.2rem}
 
-/* Empty line spacer */
-.spacer{display:block;width:1.5rem;margin-left:0}
-
-/* Nav block at document end */
+/* Nav block */
 .nav-block{
   display:inline-block;vertical-align:top;
-  margin-left:6rem;padding:0 1.8rem;
+  margin-left:5rem;padding:0 1.6rem;
   border-left:1px solid var(--div);border-right:1px solid var(--div);
-  opacity:0;transform:translateX(-16px);
-  transition:opacity 0.6s ease, transform 0.6s ease;
+  opacity:0;transform:translateX(-12px);
+  transition:opacity 0.5s,transform 0.5s;
 }
 .nav-block.vis{opacity:1;transform:translateX(0)}
-.nav-hd{
-  display:block;font-size:0.75rem;color:var(--ink-lt);
-  letter-spacing:0.25em;margin-bottom:2rem;
-}
+.nav-hd{display:block;font-size:0.75rem;color:var(--ink-lt);letter-spacing:0.25em;margin-bottom:1.8rem}
 .nav-a{
   display:block;color:var(--ink);text-decoration:none;
-  font-size:0.98rem;letter-spacing:0.12em;
-  padding:0.6rem 0;border-bottom:1px solid var(--div);
+  font-size:0.95rem;letter-spacing:0.1em;
+  padding:0.5rem 0;border-bottom:1px solid var(--div);
   cursor:pointer;transition:color 0.15s;
 }
 .nav-a:last-child{border-bottom:none}
 .nav-a:hover{color:var(--accent)}
 
-/* Ruby */
 ruby{ruby-align:center}
 rt{font-size:0.52em}
 </style>
 </head>
 <body>
 
-<!-- Input Screen -->
 <div id="inp">
   <div class="i-logo">縦書</div>
   <p class="i-sub">縦 書 き リ ー ダ ー</p>
   <div class="i-wrap">
-    <input type="url" id="url" placeholder="URL を入力してください…" autocomplete="url" spellcheck="false"/>
+    <input type="url" id="url-input" placeholder="URL を入力してください…" autocomplete="url" spellcheck="false"/>
     <button id="go">読 む</button>
   </div>
   <p id="err"></p>
 </div>
 
-<!-- Loading -->
 <div id="ld">
   <div class="spin"></div>
   <span>読み込み中…</span>
 </div>
 
-<!-- Reading Screen -->
 <div id="rd">
   <div id="hdr">
     <button id="bk">← 戻 る</button>
@@ -214,7 +183,7 @@ rt{font-size:0.52em}
 const $inp=document.getElementById('inp'),
       $ld=document.getElementById('ld'),
       $rd=document.getElementById('rd'),
-      $url=document.getElementById('url'),
+      $urlInput=document.getElementById('url-input'),
       $go=document.getElementById('go'),
       $err=document.getElementById('err'),
       $ca=document.getElementById('ca'),
@@ -223,110 +192,121 @@ const $inp=document.getElementById('inp'),
       $pct=document.getElementById('pct'),
       $bk=document.getElementById('bk');
 
-// Back
-$bk.addEventListener('click',()=>{
-  show($inp);
-  $ca.innerHTML='';
-  $ca.removeEventListener('scroll',onScroll);
-});
+let scrollHandler=null;
 
-// Enter
-$url.addEventListener('keydown',e=>{ if(e.key==='Enter') $go.click(); });
+function show(el){
+  [$inp,$ld,$rd].forEach(e=>{ e.style.display='none'; });
+  el.style.display='flex';
+}
 
+$bk.addEventListener('click',()=>{ show($inp); cleanupReader(); });
+$urlInput.addEventListener('keydown',e=>{ if(e.key==='Enter') $go.click(); });
 $go.addEventListener('click',()=>{
-  let u=$url.value.trim();
+  const u=$urlInput.value.trim();
   if(!u){$err.textContent='URLを入力してください';return;}
-  if(!/^https?:\/\//i.test(u)){$err.textContent='http:// か https:// で始まるURLを入力してください';return;}
+  if(!/^https?:\/\//i.test(u)){$err.textContent='https:// で始まるURLを入力してください';return;}
   $err.textContent='';
   load(u);
 });
 
-function show(el){
-  [$inp,$ld,$rd].forEach(e=>e.style.display='none');
-  el.style.display=el===$rd?'flex':el===$ld?'flex':'flex';
+function cleanupReader(){
+  if(scrollHandler){ $ca.removeEventListener('scroll',scrollHandler); scrollHandler=null; }
+  $ca.innerHTML='';
+  $pf.style.width='0%';
+  $pct.textContent='0%';
 }
 
-// ── Fetch ──
+// ── Proxies ──
 const PROXIES=[
   async u=>{
-    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(8000)});
+    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(9000)});
     if(!r.ok)throw 0;
     const j=await r.json();
-    if(j&&j.contents&&j.contents.length>200)return j.contents;
+    if(j&&j.contents&&j.contents.length>500)return j.contents;
     throw 0;
   },
   async u=>{
-    const r=await fetch(`https://corsproxy.io/?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(8000)});
+    const r=await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(9000)});
     if(!r.ok)throw 0;
     const t=await r.text();
-    if(t.length>200)return t;
+    if(t.length>500)return t;
     throw 0;
   },
   async u=>{
-    const r=await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(8000)});
+    const r=await fetch(`https://corsproxy.io/?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(9000)});
     if(!r.ok)throw 0;
     const t=await r.text();
-    if(t.length>200)return t;
+    if(t.length>500)return t;
     throw 0;
   },
   async u=>{
-    const r=await fetch(`https://thingproxy.freeboard.io/fetch/${u}`,{signal:AbortSignal.timeout(8000)});
+    const r=await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(9000)});
     if(!r.ok)throw 0;
     const t=await r.text();
-    if(t.length>200)return t;
+    if(t.length>500)return t;
     throw 0;
   },
   async u=>{
-    // htmlpreview / raw fetch 最終手段
-    const r=await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(8000)});
+    const r=await fetch(`https://thingproxy.freeboard.io/fetch/${u}`,{signal:AbortSignal.timeout(9000)});
     if(!r.ok)throw 0;
     const t=await r.text();
-    if(t.length>200)return t;
+    if(t.length>500)return t;
     throw 0;
   },
 ];
 
 async function fetchHtml(u){
-  const errs=[];
-  for(const proxy of PROXIES){
+  for(let i=0;i<PROXIES.length;i++){
     try{
-      const html=await proxy(u);
-      console.log('Fetched via proxy',PROXIES.indexOf(proxy));
+      const html=await PROXIES[i](u);
+      console.log('[縦書き] Proxy',i,'succeeded');
       return html;
-    }catch(e){ errs.push(e); }
+    }catch(e){ console.warn('[縦書き] Proxy',i,'failed',e); }
   }
-  throw new Error('All proxies failed: '+errs.map(e=>e&&e.message||e).join(' | '));
+  throw new Error('全プロキシ失敗');
 }
 
 async function load(u){
+  cleanupReader();
   show($ld);
   try{
     const html=await fetchHtml(u);
     parse(html,u);
   }catch(e){
     show($inp);
-    $err.textContent='読み込みに失敗しました（全プロキシ試行済）。しばらく待って再試行してください。';
+    $err.textContent='読み込みに失敗しました。しばらく待ってから再試行してください。';
     console.error(e);
   }
 }
 
-// ── Parse & Display ──
+// ── Parse ──
+function resolveUrl(href, inputUrl, origin){
+  if(!href||href==='#'||/^javascript/i.test(href))return null;
+  if(href.startsWith('//')){return 'https:'+href;}
+  if(href.startsWith('/')){return origin+href;}
+  if(/^https?:\/\//i.test(href)){
+    // 同オリジンなら問題なし、別オリジンでも使う
+    return href;
+  }
+  try{ return new URL(href,inputUrl).href; }catch(_){ return null; }
+}
+
 function parse(html,inputUrl){
   const doc=new DOMParser().parseFromString(html,'text/html');
   let origin='';
-  try{ origin=new URL(inputUrl).origin; }catch(_){}
+  try{ const pu=new URL(inputUrl); origin=pu.origin; }catch(_){}
 
-  // Title
+  // ── Title
   const titleEl=
-    doc.querySelector('.contentMain-pagerEpisodeTitle.js-vertical-composition-item')||
+    doc.querySelector('.contentMain-pagerEpisodeTitle')||
     doc.querySelector('[class*="pagerEpisodeTitle"]')||
     doc.querySelector('[class*="episodeTitle"]')||
     doc.querySelector('h1');
   const titleTxt=titleEl?titleEl.textContent.trim():'';
 
-  // Paragraphs p1,p2,...
+  // ── Paragraphs #p1, #p2, …
   const paras=[];
-  for(let i=1;;i++){
+  for(let i=1;i<9999;i++){
     const p=doc.getElementById('p'+i);
     if(!p)break;
     p.querySelectorAll('script,style,noscript,iframe').forEach(x=>x.remove());
@@ -336,44 +316,33 @@ function parse(html,inputUrl){
     paras.push(p.innerHTML.trim());
   }
 
-  // Nav links — find anchors that reference works/episodes/novel/chapter paths
+  // ── Nav links
   const navLinks=[];
-  const seenU=new Set();
+  const seenU=new Set([inputUrl]);
   doc.querySelectorAll('a[href]').forEach(a=>{
-    const href=a.getAttribute('href')||'';
-    if(!href||href==='#'||href.startsWith('javascript'))return;
+    const href=(a.getAttribute('href')||'').trim();
     const txt=a.textContent.trim();
-    if(!txt||txt.length>60)return;
+    if(!txt||txt.length>80)return;
 
-    // Resolve URL: for relative paths, prepend origin
-    let resolved=href;
-    if(href.startsWith('/')){
-      resolved=origin+href;
-    } else if(!/^https?:\/\//i.test(href)){
-      try{ resolved=new URL(href,inputUrl).href; }catch(_){ return; }
-    } else {
-      // Absolute URL — check if it shares the same origin or has /works/ pattern
-      // Replace the origin part with our input origin if it looks like a same-site link
-      try{
-        const hUrl=new URL(href);
-        // Same origin or just replace — the user asked to swap "works以降" with input URL's structure
-        resolved=origin+hUrl.pathname+hUrl.search;
-      }catch(_){ return; }
-    }
+    const resolved=resolveUrl(href,inputUrl,origin);
+    if(!resolved||seenU.has(resolved))return;
 
-    const hasNavPath=/\/(works|episodes|novel|chapter|ep|story|viewer)\//i.test(resolved);
-    const inNavEl=!!a.closest('[class*="nav"],[class*="pager"],[class*="prev"],[class*="next"],[class*="episode"],[class*="chapter"]');
-    if((hasNavPath||inNavEl)&&!seenU.has(resolved)){
+    // 同オリジンのリンク、またはナビ系クラスを持つ要素を対象
+    let sameOrigin=false;
+    try{ sameOrigin=new URL(resolved).origin===origin; }catch(_){}
+    const inNavEl=!!a.closest('[class*="nav"],[class*="pager"],[class*="prev"],[class*="next"],[class*="episode"],[class*="chapter"],[class*="footer"]');
+    const hasNavPath=/\/(works|episodes?|novel|chapter|ep|story|viewer|parts?)\b/i.test(resolved);
+
+    if(sameOrigin&&(inNavEl||hasNavPath)){
       seenU.add(resolved);
       navLinks.push({txt,url:resolved});
     }
   });
 
-  // ── Render ──
+  // ── Render
   $ca.innerHTML='';
-  $ht.textContent=titleTxt;
+  $ht.textContent=titleTxt||'—';
 
-  // Title block
   if(titleTxt){
     const tb=document.createElement('div');
     tb.className='t-block';
@@ -381,82 +350,71 @@ function parse(html,inputUrl){
     $ca.appendChild(tb);
   }
 
-  // Text block
   const txb=document.createElement('div');
   txb.className='tx-block';
-
   if(paras.length===0){
     const p=document.createElement('p');
-    p.className='para';
-    p.style.color='var(--ink-lt)';
-    p.textContent='本文段落（#p1, #p2…）が見つかりませんでした。';
+    p.className='para';p.style.color='var(--ink-lt)';
+    p.textContent='本文（#p1, #p2…）が見つかりませんでした。';
     txb.appendChild(p);
-  } else {
-    paras.forEach(html=>{
-      if(!html||html==='　'||html===''){
-        const sp=document.createElement('span');
-        sp.className='spacer';
-        txb.appendChild(sp);
-      } else {
-        const p=document.createElement('p');
-        p.className='para';
-        p.innerHTML=html;
-        txb.appendChild(p);
+  }else{
+    paras.forEach(h=>{
+      const trimmed=h.replace(/<[^>]+>/g,'').trim();
+      if(!trimmed||trimmed==='　'){
+        const sp=document.createElement('span');sp.className='spacer';txb.appendChild(sp);
+      }else{
+        const p=document.createElement('p');p.className='para';p.innerHTML=h;txb.appendChild(p);
       }
     });
   }
   $ca.appendChild(txb);
 
-  // Nav block
   if(navLinks.length>0){
-    const nb=document.createElement('div');
-    nb.className='nav-block';
-    const hd=document.createElement('span');
-    hd.className='nav-hd';
-    hd.textContent='— 次 へ —';
+    const nb=document.createElement('div');nb.className='nav-block';
+    const hd=document.createElement('span');hd.className='nav-hd';hd.textContent='— 次 へ —';
     nb.appendChild(hd);
     navLinks.forEach(({txt,url})=>{
-      const a=document.createElement('a');
-      a.className='nav-a';
-      a.textContent=txt;
-      a.href='#';
-      a.addEventListener('click',e=>{ e.preventDefault(); $url.value=url; load(url); });
+      const a=document.createElement('a');a.className='nav-a';
+      a.textContent=txt;a.href='#';
+      a.addEventListener('click',e=>{
+        e.preventDefault();
+        $urlInput.value=url;
+        load(url);
+      });
       nb.appendChild(a);
     });
     $ca.appendChild(nb);
 
-    // Animate in when visible
+    // 末端に到達したらフェードイン
     const obs=new IntersectionObserver(entries=>{
       entries.forEach(e=>{ if(e.isIntersecting)nb.classList.add('vis'); });
-    },{root:$ca,threshold:0.15});
+    },{root:$ca,threshold:0.1});
     obs.observe(nb);
   }
 
   show($rd);
 
-  // Scroll to start (right edge = beginning of text in vertical-rl)
+  // スクロール位置を右端（文頭）に合わせる
   requestAnimationFrame(()=>{
-    $ca.scrollLeft=$ca.scrollWidth-$ca.clientWidth;
+    $ca.scrollLeft=$ca.scrollWidth;
     updateProg();
   });
 
-  $ca.addEventListener('scroll',onScroll);
+  scrollHandler=()=>updateProg();
+  $ca.addEventListener('scroll',scrollHandler,{passive:true});
 }
 
-function onScroll(){ updateProg(); }
-
 function updateProg(){
-  const {scrollLeft:sl,scrollWidth:sw,clientWidth:cw}=$ca;
+  const sl=$ca.scrollLeft,sw=$ca.scrollWidth,cw=$ca.clientWidth;
   const max=sw-cw;
   if(max<=0){$pf.style.width='100%';$pct.textContent='100%';return;}
-  // In vertical-rl: max scrollLeft = start (right), 0 = end (left)
-  const p=Math.round(((max-Math.max(0,sl))/max)*100);
-  const pv=Math.min(100,Math.max(0,p));
+  // vertical-rl: 右端=文頭(max), 左端=文末(0)
+  const pv=Math.min(100,Math.max(0,Math.round(((max-sl)/max)*100)));
   $pf.style.width=pv+'%';
   $pct.textContent=pv+'%';
 }
 
-function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 </script>
 </body>
 </html>
