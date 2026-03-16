@@ -290,7 +290,22 @@ async function tryProxy(proxyUrl, isJson=false){
 
 async function fetchHtml(u){
   const enc=encodeURIComponent(u);
-  // まず Fetch API で直接試みる
+
+  // 1) 専用プロキシAPIを最優先で試す
+  try{
+    const r=await timedFetch(`https://proxyapi.ijl15683.workers.dev?url=${enc}&key=keke-no-key`);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    if(j&&j.html&&j.html.length>300){
+      console.log('[縦書き] custom proxy succeeded');
+      return j.html;
+    }
+    throw new Error('empty response');
+  }catch(e){
+    console.log('[縦書き] custom proxy failed, trying fallbacks…',e.message);
+  }
+
+  // 2) Fetch API で直接試みる
   try{
     const t=await tryDirect(u);
     console.log('[縦書き] direct fetch succeeded');
@@ -298,7 +313,8 @@ async function fetchHtml(u){
   }catch(e){
     console.log('[縦書き] direct fetch failed, trying proxies…',e.message);
   }
-  // 直接取得できなければプロキシを並列で試す
+
+  // 3) 汎用プロキシを並列で試す
   const proxies=[
     ()=>tryProxy(`https://api.allorigins.win/get?url=${enc}`,true),
     ()=>tryProxy(`https://api.allorigins.win/raw?url=${enc}`),
