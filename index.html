@@ -247,20 +247,55 @@ function show(el){
 }
 
 // ── Fetch ──
-async function fetchHtml(u){
-  // allorigins
-  try{
-    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`);
+const PROXIES=[
+  async u=>{
+    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(8000)});
     if(!r.ok)throw 0;
     const j=await r.json();
-    if(j.contents)return j.contents;
+    if(j&&j.contents&&j.contents.length>200)return j.contents;
     throw 0;
-  }catch(_){
-    // corsproxy fallback
-    const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(u)}`);
-    if(!r.ok)throw new Error('fetch failed');
-    return await r.text();
+  },
+  async u=>{
+    const r=await fetch(`https://corsproxy.io/?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw 0;
+    const t=await r.text();
+    if(t.length>200)return t;
+    throw 0;
+  },
+  async u=>{
+    const r=await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw 0;
+    const t=await r.text();
+    if(t.length>200)return t;
+    throw 0;
+  },
+  async u=>{
+    const r=await fetch(`https://thingproxy.freeboard.io/fetch/${u}`,{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw 0;
+    const t=await r.text();
+    if(t.length>200)return t;
+    throw 0;
+  },
+  async u=>{
+    // htmlpreview / raw fetch 最終手段
+    const r=await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw 0;
+    const t=await r.text();
+    if(t.length>200)return t;
+    throw 0;
+  },
+];
+
+async function fetchHtml(u){
+  const errs=[];
+  for(const proxy of PROXIES){
+    try{
+      const html=await proxy(u);
+      console.log('Fetched via proxy',PROXIES.indexOf(proxy));
+      return html;
+    }catch(e){ errs.push(e); }
   }
+  throw new Error('All proxies failed: '+errs.map(e=>e&&e.message||e).join(' | '));
 }
 
 async function load(u){
@@ -270,7 +305,7 @@ async function load(u){
     parse(html,u);
   }catch(e){
     show($inp);
-    $err.textContent='読み込みに失敗しました。URLや接続を確認してください。';
+    $err.textContent='読み込みに失敗しました（全プロキシ試行済）。しばらく待って再試行してください。';
     console.error(e);
   }
 }
