@@ -16,10 +16,9 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--f);color:var(--ink)}
 
-/* ── Input ── */
 #inp{
   height:100vh;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:0;padding:2rem;
+  align-items:center;justify-content:center;padding:2rem;
   position:relative;overflow:hidden;
 }
 #inp::before{
@@ -44,22 +43,22 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
 }
 #url-input{
   flex:1;padding:0.9rem 1.2rem;font-family:var(--f);font-size:0.95rem;
-  border:none;background:rgba(255,255,255,0.65);color:var(--ink);outline:none;
+  border:none;background:rgba(255,255,255,0.65);color:var(--ink);outline:none;min-width:0;
 }
 #url-input::placeholder{color:var(--ink-lt);opacity:0.5}
 #go{
-  padding:0 2rem;background:var(--ink);color:var(--paper);
+  padding:0 1.8rem;background:var(--ink);color:var(--paper);
   font-family:var(--f);font-size:1rem;letter-spacing:0.2em;
   border:none;cursor:pointer;transition:background 0.2s;flex-shrink:0;
 }
 #go:hover{background:var(--accent)}
-#err{margin-top:1rem;color:var(--accent);font-size:0.82rem;letter-spacing:0.12em;min-height:1.2em}
+#go:disabled{opacity:0.5;cursor:not-allowed}
+#err{margin-top:1rem;color:var(--accent);font-size:0.82rem;letter-spacing:0.1em;min-height:1.4em;text-align:center;max-width:500px}
 
-/* ── Loading ── */
 #ld{
   height:100vh;display:none;flex-direction:column;
-  align-items:center;justify-content:center;gap:1.6rem;
-  color:var(--ink-lt);letter-spacing:0.25em;font-size:0.85rem;
+  align-items:center;justify-content:center;gap:1.4rem;
+  color:var(--ink-lt);letter-spacing:0.2em;font-size:0.85rem;
 }
 .spin{
   width:36px;height:36px;border-radius:50%;
@@ -67,38 +66,32 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
   animation:sp 0.75s linear infinite;
 }
 @keyframes sp{to{transform:rotate(360deg)}}
+#ld-msg{font-size:0.78rem;color:var(--ink-lt);letter-spacing:0.15em;margin-top:0.2rem;min-height:1.2em}
 
-/* ── Reading ── */
-#rd{
-  /* 重要: overflow:hidden で子のmin-height:0が効く */
-  height:100vh;display:none;flex-direction:column;overflow:hidden;
-}
-
+#rd{height:100vh;display:none;flex-direction:column;overflow:hidden}
 #hdr{
   height:var(--hdr);flex-shrink:0;
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 1.5rem;
-  background:rgba(237,229,207,0.97);
-  border-bottom:1px solid var(--div);
-  z-index:10;
+  padding:0 1.5rem;background:rgba(237,229,207,0.97);
+  border-bottom:1px solid var(--div);z-index:10;
 }
 #bk{
   font-family:var(--f);font-size:0.82rem;color:var(--ink-mid);
   background:none;border:1px solid var(--div);padding:0.38rem 1rem;
   border-radius:2px;cursor:pointer;letter-spacing:0.15em;transition:all 0.15s;
+  white-space:nowrap;
 }
 #bk:hover{background:var(--paper2)}
 #htitle{
   font-size:0.88rem;color:var(--ink-mid);letter-spacing:0.12em;
-  max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  text-align:center;padding:0 1rem;
 }
-#pct{font-size:0.78rem;color:var(--ink-lt);letter-spacing:0.08em;min-width:40px;text-align:right}
+#pct{font-size:0.78rem;color:var(--ink-lt);min-width:36px;text-align:right;white-space:nowrap}
 #pbar{height:2px;background:var(--div);flex-shrink:0}
 #pfill{height:100%;background:var(--accent);width:0%;transition:width 0.1s linear}
 
-/* ── Content ── */
 #ca{
-  /* flex:1 + min-height:0 が見切れ修正の核心 */
   flex:1;min-height:0;min-width:0;
   writing-mode:vertical-rl;text-orientation:mixed;
   overflow-x:auto;overflow-y:hidden;
@@ -112,30 +105,17 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
 #ca::-webkit-scrollbar-thumb{background:rgba(27,21,8,0.28);border-radius:3px}
 #ca::-webkit-scrollbar-thumb:hover{background:rgba(27,21,8,0.45)}
 
-/* Title block */
-.t-block{
-  display:inline-block;vertical-align:top;
-  margin-left:3.5rem;padding:0 1.2rem;
-  border-left:1px solid var(--div);
-}
-.ep-title{
-  font-size:1.3rem;font-weight:500;letter-spacing:0.22em;
-  color:var(--accent);display:block;
-}
-
-/* Text block */
+.t-block{display:inline-block;vertical-align:top;margin-left:3.5rem;padding:0 1.2rem;border-left:1px solid var(--div)}
+.ep-title{font-size:1.3rem;font-weight:500;letter-spacing:0.22em;color:var(--accent);display:block}
 .tx-block{display:inline-block;vertical-align:top}
 .para{display:block;margin-left:1.6rem}
 .para:first-child{margin-left:0}
 .spacer{display:block;width:1.2rem}
-
-/* Nav block */
 .nav-block{
   display:inline-block;vertical-align:top;
   margin-left:5rem;padding:0 1.6rem;
   border-left:1px solid var(--div);border-right:1px solid var(--div);
-  opacity:0;transform:translateX(-12px);
-  transition:opacity 0.5s,transform 0.5s;
+  opacity:0;transform:translateX(-12px);transition:opacity 0.5s,transform 0.5s;
 }
 .nav-block.vis{opacity:1;transform:translateX(0)}
 .nav-hd{display:block;font-size:0.75rem;color:var(--ink-lt);letter-spacing:0.25em;margin-bottom:1.8rem}
@@ -147,9 +127,7 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
 }
 .nav-a:last-child{border-bottom:none}
 .nav-a:hover{color:var(--accent)}
-
-ruby{ruby-align:center}
-rt{font-size:0.52em}
+ruby{ruby-align:center}rt{font-size:0.52em}
 </style>
 </head>
 <body>
@@ -167,6 +145,7 @@ rt{font-size:0.52em}
 <div id="ld">
   <div class="spin"></div>
   <span>読み込み中…</span>
+  <span id="ld-msg"></span>
 </div>
 
 <div id="rd">
@@ -190,17 +169,23 @@ const $inp=document.getElementById('inp'),
       $ht=document.getElementById('htitle'),
       $pf=document.getElementById('pfill'),
       $pct=document.getElementById('pct'),
-      $bk=document.getElementById('bk');
+      $bk=document.getElementById('bk'),
+      $ldMsg=document.getElementById('ld-msg');
 
 let scrollHandler=null;
 
 function show(el){
-  [$inp,$ld,$rd].forEach(e=>{ e.style.display='none'; });
+  [$inp,$ld,$rd].forEach(e=>{e.style.display='none'});
   el.style.display='flex';
 }
+function cleanupReader(){
+  if(scrollHandler){$ca.removeEventListener('scroll',scrollHandler);scrollHandler=null;}
+  $ca.innerHTML='';
+  $pf.style.width='0%';$pct.textContent='0%';
+}
 
-$bk.addEventListener('click',()=>{ show($inp); cleanupReader(); });
-$urlInput.addEventListener('keydown',e=>{ if(e.key==='Enter') $go.click(); });
+$bk.addEventListener('click',()=>{show($inp);cleanupReader();});
+$urlInput.addEventListener('keydown',e=>{if(e.key==='Enter')$go.click();});
 $go.addEventListener('click',()=>{
   const u=$urlInput.value.trim();
   if(!u){$err.textContent='URLを入力してください';return;}
@@ -209,94 +194,99 @@ $go.addEventListener('click',()=>{
   load(u);
 });
 
-function cleanupReader(){
-  if(scrollHandler){ $ca.removeEventListener('scroll',scrollHandler); scrollHandler=null; }
-  $ca.innerHTML='';
-  $pf.style.width='0%';
-  $pct.textContent='0%';
+// ── Fetch: 全プロキシを並列で投げ、最初に成功したものを採用 ──
+async function proxyFetch(proxyUrl, timeout=12000){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),timeout);
+  try{
+    const r=await fetch(proxyUrl,{signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const t=await r.text();
+    if(t.length<300)throw new Error('too short');
+    return t;
+  }finally{clearTimeout(tid);}
 }
 
-// ── Proxies ──
-const PROXIES=[
-  async u=>{
-    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(9000)});
-    if(!r.ok)throw 0;
+async function jsonProxyFetch(proxyUrl, timeout=12000){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),timeout);
+  try{
+    const r=await fetch(proxyUrl,{signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
-    if(j&&j.contents&&j.contents.length>500)return j.contents;
-    throw 0;
-  },
-  async u=>{
-    const r=await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(9000)});
-    if(!r.ok)throw 0;
-    const t=await r.text();
-    if(t.length>500)return t;
-    throw 0;
-  },
-  async u=>{
-    const r=await fetch(`https://corsproxy.io/?url=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(9000)});
-    if(!r.ok)throw 0;
-    const t=await r.text();
-    if(t.length>500)return t;
-    throw 0;
-  },
-  async u=>{
-    const r=await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,{signal:AbortSignal.timeout(9000)});
-    if(!r.ok)throw 0;
-    const t=await r.text();
-    if(t.length>500)return t;
-    throw 0;
-  },
-  async u=>{
-    const r=await fetch(`https://thingproxy.freeboard.io/fetch/${u}`,{signal:AbortSignal.timeout(9000)});
-    if(!r.ok)throw 0;
-    const t=await r.text();
-    if(t.length>500)return t;
-    throw 0;
-  },
-];
+    const t=j&&(j.contents||j.body||j.data||'');
+    if(!t||t.length<300)throw new Error('too short');
+    return t;
+  }finally{clearTimeout(tid);}
+}
+
+function makeProxies(u){
+  const enc=encodeURIComponent(u);
+  return [
+    ()=>jsonProxyFetch(`https://api.allorigins.win/get?url=${enc}`),
+    ()=>proxyFetch(`https://api.allorigins.win/raw?url=${enc}`),
+    ()=>proxyFetch(`https://corsproxy.io/?url=${enc}`),
+    ()=>proxyFetch(`https://api.codetabs.com/v1/proxy?quest=${enc}`),
+    ()=>proxyFetch(`https://thingproxy.freeboard.io/fetch/${u}`),
+    ()=>proxyFetch(`https://proxy.cors.sh/${u}`,12000),
+    ()=>proxyFetch(`https://cors-proxy.fringe.zone/${u}`,12000),
+  ];
+}
+
+let ldInterval=null;
+function startLoadingAnim(){
+  const msgs=['接続中…','サーバーに問い合わせ中…','もう少しお待ちください…','取得中…'];
+  let i=0;
+  $ldMsg.textContent=msgs[0];
+  ldInterval=setInterval(()=>{i=(i+1)%msgs.length;$ldMsg.textContent=msgs[i];},2200);
+}
+function stopLoadingAnim(){if(ldInterval){clearInterval(ldInterval);ldInterval=null;}}
 
 async function fetchHtml(u){
-  for(let i=0;i<PROXIES.length;i++){
-    try{
-      const html=await PROXIES[i](u);
-      console.log('[縦書き] Proxy',i,'succeeded');
-      return html;
-    }catch(e){ console.warn('[縦書き] Proxy',i,'failed',e); }
-  }
-  throw new Error('全プロキシ失敗');
+  const proxies=makeProxies(u);
+  // 全プロキシを同時に投げ、最初に成功したものを返す (Promise.any)
+  return await Promise.any(proxies.map(fn=>fn()));
 }
 
 async function load(u){
   cleanupReader();
   show($ld);
+  $go.disabled=true;
+  startLoadingAnim();
   try{
     const html=await fetchHtml(u);
+    stopLoadingAnim();
     parse(html,u);
   }catch(e){
+    stopLoadingAnim();
     show($inp);
-    $err.textContent='読み込みに失敗しました。しばらく待ってから再試行してください。';
-    console.error(e);
+    $err.textContent='読み込みに失敗しました。対象サイトがプロキシをブロックしている可能性があります。';
+    console.error('[縦書き]',e);
+  }finally{
+    $go.disabled=false;
   }
 }
 
-// ── Parse ──
-function resolveUrl(href, inputUrl, origin){
-  if(!href||href==='#'||/^javascript/i.test(href))return null;
-  if(href.startsWith('//')){return 'https:'+href;}
-  if(href.startsWith('/')){return origin+href;}
-  if(/^https?:\/\//i.test(href)){
-    // 同オリジンなら問題なし、別オリジンでも使う
-    return href;
-  }
-  try{ return new URL(href,inputUrl).href; }catch(_){ return null; }
+// ── URL解決 ──
+function resolveUrl(href,inputUrl,origin){
+  if(!href)return null;
+  href=href.trim();
+  if(!href||href==='#'||/^javascript/i.test(href)||/^mailto/i.test(href))return null;
+  if(href.startsWith('//'))return 'https:'+href;
+  if(href.startsWith('/'))return origin+href;
+  if(/^https?:\/\//i.test(href))return href;
+  try{return new URL(href,inputUrl).href;}catch(_){return null;}
 }
 
+// ── Parse & Render ──
 function parse(html,inputUrl){
   const doc=new DOMParser().parseFromString(html,'text/html');
   let origin='';
-  try{ const pu=new URL(inputUrl); origin=pu.origin; }catch(_){}
+  try{origin=new URL(inputUrl).origin;}catch(_){}
 
-  // ── Title
+  // タイトル
   const titleEl=
     doc.querySelector('.contentMain-pagerEpisodeTitle')||
     doc.querySelector('[class*="pagerEpisodeTitle"]')||
@@ -304,63 +294,57 @@ function parse(html,inputUrl){
     doc.querySelector('h1');
   const titleTxt=titleEl?titleEl.textContent.trim():'';
 
-  // ── Paragraphs #p1, #p2, …
+  // 本文 #p1, #p2, …
   const paras=[];
-  for(let i=1;i<9999;i++){
+  for(let i=1;i<99999;i++){
     const p=doc.getElementById('p'+i);
     if(!p)break;
     p.querySelectorAll('script,style,noscript,iframe').forEach(x=>x.remove());
     p.querySelectorAll('*').forEach(el=>{
-      [...el.attributes].forEach(a=>{ if(a.name.startsWith('on'))el.removeAttribute(a.name); });
+      [...el.attributes].forEach(a=>{if(a.name.startsWith('on'))el.removeAttribute(a.name);});
     });
     paras.push(p.innerHTML.trim());
   }
 
-  // ── Nav links
+  // ナビリンク収集
   const navLinks=[];
   const seenU=new Set([inputUrl]);
   doc.querySelectorAll('a[href]').forEach(a=>{
     const href=(a.getAttribute('href')||'').trim();
     const txt=a.textContent.trim();
     if(!txt||txt.length>80)return;
-
     const resolved=resolveUrl(href,inputUrl,origin);
     if(!resolved||seenU.has(resolved))return;
-
-    // 同オリジンのリンク、またはナビ系クラスを持つ要素を対象
     let sameOrigin=false;
-    try{ sameOrigin=new URL(resolved).origin===origin; }catch(_){}
-    const inNavEl=!!a.closest('[class*="nav"],[class*="pager"],[class*="prev"],[class*="next"],[class*="episode"],[class*="chapter"],[class*="footer"]');
+    try{sameOrigin=new URL(resolved).origin===origin;}catch(_){}
+    if(!sameOrigin)return;
+    const inNavEl=!!a.closest('[class*="nav"],[class*="pager"],[class*="prev"],[class*="next"],[class*="episode"],[class*="chapter"],[class*="footer"],[class*="link"]');
     const hasNavPath=/\/(works|episodes?|novel|chapter|ep|story|viewer|parts?)\b/i.test(resolved);
-
-    if(sameOrigin&&(inNavEl||hasNavPath)){
+    if(inNavEl||hasNavPath){
       seenU.add(resolved);
       navLinks.push({txt,url:resolved});
     }
   });
 
-  // ── Render
+  // 描画
   $ca.innerHTML='';
   $ht.textContent=titleTxt||'—';
 
   if(titleTxt){
-    const tb=document.createElement('div');
-    tb.className='t-block';
+    const tb=document.createElement('div');tb.className='t-block';
     tb.innerHTML=`<span class="ep-title">${esc(titleTxt)}</span>`;
     $ca.appendChild(tb);
   }
 
-  const txb=document.createElement('div');
-  txb.className='tx-block';
+  const txb=document.createElement('div');txb.className='tx-block';
   if(paras.length===0){
-    const p=document.createElement('p');
-    p.className='para';p.style.color='var(--ink-lt)';
+    const p=document.createElement('p');p.className='para';p.style.color='var(--ink-lt)';
     p.textContent='本文（#p1, #p2…）が見つかりませんでした。';
     txb.appendChild(p);
   }else{
     paras.forEach(h=>{
-      const trimmed=h.replace(/<[^>]+>/g,'').trim();
-      if(!trimmed||trimmed==='　'){
+      const plain=h.replace(/<[^>]+>/g,'').trim();
+      if(!plain||plain==='　'){
         const sp=document.createElement('span');sp.className='spacer';txb.appendChild(sp);
       }else{
         const p=document.createElement('p');p.className='para';p.innerHTML=h;txb.appendChild(p);
@@ -376,30 +360,18 @@ function parse(html,inputUrl){
     navLinks.forEach(({txt,url})=>{
       const a=document.createElement('a');a.className='nav-a';
       a.textContent=txt;a.href='#';
-      a.addEventListener('click',e=>{
-        e.preventDefault();
-        $urlInput.value=url;
-        load(url);
-      });
+      a.addEventListener('click',e=>{e.preventDefault();$urlInput.value=url;load(url);});
       nb.appendChild(a);
     });
     $ca.appendChild(nb);
-
-    // 末端に到達したらフェードイン
     const obs=new IntersectionObserver(entries=>{
-      entries.forEach(e=>{ if(e.isIntersecting)nb.classList.add('vis'); });
+      entries.forEach(e=>{if(e.isIntersecting)nb.classList.add('vis');});
     },{root:$ca,threshold:0.1});
     obs.observe(nb);
   }
 
   show($rd);
-
-  // スクロール位置を右端（文頭）に合わせる
-  requestAnimationFrame(()=>{
-    $ca.scrollLeft=$ca.scrollWidth;
-    updateProg();
-  });
-
+  requestAnimationFrame(()=>{$ca.scrollLeft=$ca.scrollWidth;updateProg();});
   scrollHandler=()=>updateProg();
   $ca.addEventListener('scroll',scrollHandler,{passive:true});
 }
@@ -408,10 +380,8 @@ function updateProg(){
   const sl=$ca.scrollLeft,sw=$ca.scrollWidth,cw=$ca.clientWidth;
   const max=sw-cw;
   if(max<=0){$pf.style.width='100%';$pct.textContent='100%';return;}
-  // vertical-rl: 右端=文頭(max), 左端=文末(0)
   const pv=Math.min(100,Math.max(0,Math.round(((max-sl)/max)*100)));
-  $pf.style.width=pv+'%';
-  $pct.textContent=pv+'%';
+  $pf.style.width=pv+'%';$pct.textContent=pv+'%';
 }
 
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
