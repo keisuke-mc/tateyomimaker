@@ -349,12 +349,38 @@ function parse(html,inputUrl){
   try{origin=new URL(inputUrl).origin;}catch(_){}
 
   // タイトル
-  const titleEl=
-    doc.querySelector('.contentMain-pagerEpisodeTitle')||
-    doc.querySelector('[class*="pagerEpisodeTitle"]')||
-    doc.querySelector('[class*="episodeTitle"]')||
-    doc.querySelector('h1');
-  const titleTxt=titleEl?titleEl.textContent.trim():'';
+  // og:title / twitter:title → <title> → 本文エリア内h1/h2 の順で取得
+  // ナビ要素（前話・次話リンク）に含まれるタイトルを誤って拾わないよう
+  // メタタグを最優先にする
+  function getPageTitle(){
+    // 1) og:title
+    const og=doc.querySelector('meta[property="og:title"]');
+    if(og&&og.getAttribute('content')) return og.getAttribute('content').trim();
+    // 2) twitter:title
+    const tw=doc.querySelector('meta[name="twitter:title"]');
+    if(tw&&tw.getAttribute('content')) return tw.getAttribute('content').trim();
+    // 3) <title>タグ（サイト名を除去）
+    const tt=doc.querySelector('title');
+    if(tt){
+      let t=tt.textContent.trim();
+      // 「タイトル | サイト名」形式からサイト名を除去
+      t=t.replace(/\s*[|｜／/].*$/, '').replace(/\s*[-–—].*$/, '').trim();
+      if(t) return t;
+    }
+    // 4) ナビ要素の外にある最初のh1/h2
+    const navSel='[class*="nav"],[class*="pager"],[class*="footer"],[class*="header"],[id*="nav"],[id*="pager"]';
+    for(const el of doc.querySelectorAll('h1,h2')){
+      if(!el.closest(navSel)) return el.textContent.trim();
+    }
+    // 5) 現在ページ固有クラス（ナビ外限定）
+    for(const sel of ['.contentMain-pagerEpisodeTitle','[class*="episodeTitle"],[class*="chapterTitle"]']){
+      for(const el of doc.querySelectorAll(sel)){
+        if(!el.closest(navSel)) return el.textContent.trim();
+      }
+    }
+    return '';
+  }
+  const titleTxt=getPageTitle();
 
   // 本文 #p1, #p2, …
   const paras=[];
